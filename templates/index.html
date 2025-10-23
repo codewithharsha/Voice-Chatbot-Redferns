@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Assistant Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+        .dark .custom-scrollbar::-webkit-scrollbar-track { background: #2d3748; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #718096; }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
+        
+        /* Speaker Icon Style */
+        .speaker-btn {
+            opacity: 0.6; /* Make it visible but subtle */
+            transition: opacity 0.2s ease-in-out, color 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .speaker-btn:hover {
+            opacity: 1.0;
+            color: #3b82f6; /* blue-500 */
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 flex items-center justify-center h-screen">
+
+    <div class="flex flex-col w-full max-w-3xl h-[95vh] bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+        <!-- Header -->
+        <header class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <h1 class="text-xl font-bold text-gray-800 dark:text-white">Hotel Assistant</h1>
+            <!-- Language dropdown removed -->
+        </header>
+
+        <!-- Chat Messages -->
+        <main id="chat-messages" class="flex-1 p-6 space-y-6 overflow-y-auto custom-scrollbar">
+            <!-- Initial bot message -->
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg shrink-0">H</div>
+                <div class="bg-gray-200 dark:bg-gray-700 p-4 rounded-lg rounded-tl-none max-w-lg shadow relative group">
+                    <p class="text-sm" id="msg-init">Welcome to our hotel! How can I assist you today? Feel free to ask me anything about the hotel's amenities or services.</p>
+                    <div class="absolute -right-8 top-1/2 -translate-y-1/2">
+                        <svg onclick="speakText('msg-init')" class="speaker-btn h-5 w-5 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.5a1.5 1.5 0 0 0-1.5 1.5v6a1.5 1.5 0 0 0 1.5 1.5h1.94l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06ZM18.584 14.828a1.5 1.5 0 0 0 0-2.121l-1.414-1.414a1.5 1.5 0 1 0-2.121 2.121l1.414 1.414a1.5 1.5 0 0 0 2.121 0ZM18.584 9.172a1.5 1.5 0 1 0-2.121-2.121L15.05 8.465a1.5 1.5 0 1 0 2.121 2.121l1.413-1.414Z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Chat Input -->
+        <footer class="p-4 border-t border-gray-200 dark:border-gray-700">
+            <div class="relative">
+                <textarea
+                    id="chat-input"
+                    class="w-full bg-gray-100 dark:bg-gray-700 rounded-lg p-4 pr-32 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 resize-none"
+                    placeholder="Type your message or use the microphone..."
+                    rows="1"
+                ></textarea>
+                <div class="absolute inset-y-0 right-4 flex items-center">
+                    <button id="voice-btn" class="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 rounded-full transition duration-200 focus:outline-none">
+                        <svg id="mic-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                        <svg id="recording-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden animate-pulse" fill="red" viewBox="0 0 24 24" stroke="red"><circle cx="12" cy="12" r="10" /></svg>
+                    </button>
+                    <button id="send-btn" class="ml-2 p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition duration-200 focus:outline-none disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    </button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+        const voiceBtn = document.getElementById('voice-btn');
+        const micIcon = document.getElementById('mic-icon');
+        const recordingIcon = document.getElementById('recording-icon');
+        
+        // --- API Configuration ---
+        // Pointing to our local Flask server
+        const API_ENDPOINT = 'http://127.0.0.1:5000/chat';
+
+        // --- Speech Recognition Setup (English Only) ---
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        let isRecording = false;
+        
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US'; // Hardcoded to English
+
+            recognition.onstart = () => {
+                isRecording = true;
+                micIcon.classList.add('hidden');
+                recordingIcon.classList.remove('hidden');
+                voiceBtn.classList.add('text-red-500');
+                chatInput.placeholder = 'Listening... Click the mic again to stop.';
+            };
+
+            recognition.onend = () => {
+                isRecording = false;
+                micIcon.classList.remove('hidden');
+                recordingIcon.classList.add('hidden');
+                voiceBtn.classList.remove('text-red-500');
+                chatInput.placeholder = 'Type your message or use the microphone...';
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                chatInput.value = finalTranscript + interimTranscript;
+                autoResizeTextarea();
+            };
+            
+            recognition.onerror = (event) => {
+                console.error("Speech recognition error:", event.error);
+                chatInput.placeholder = `Mic error: ${event.error}`;
+            };
+
+        } else {
+            console.warn("Speech Recognition not supported in this browser.");
+            voiceBtn.disabled = true;
+        }
+        
+        // --- Speech Synthesis Setup ---
+        const synth = window.speechSynthesis;
+        
+        function speakText(elementId) {
+            const textElement = document.getElementById(elementId);
+            if (textElement && textElement.textContent && synth.speaking) {
+                synth.cancel(); // Stop any current speech
+            }
+            if (textElement && textElement.textContent) {
+                const utterance = new SpeechSynthesisUtterance(textElement.textContent);
+                utterance.onerror = (e) => console.error("Speech synthesis error:", e);
+                synth.speak(utterance);
+            }
+        }
+
+        // --- Event Listeners ---
+        sendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        voiceBtn.addEventListener('click', toggleRecording);
+        chatInput.addEventListener('input', autoResizeTextarea);
+
+        // --- Functions ---
+        function toggleRecording() {
+            if (!SpeechRecognition) return;
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+
+        async function sendMessage() {
+            const messageText = chatInput.value.trim();
+            if (messageText === '') return;
+
+            addMessageToUI(messageText, 'user');
+            chatInput.value = '';
+            autoResizeTextarea();
+            
+            // Show a "thinking" message from the bot
+            addMessageToUI("...", 'bot', true); // a "thinking" message
+
+            try {
+                // Call the stateless backend
+                const botResponse = await getBotResponseFromBackend(messageText); 
+                
+                // Update the "thinking" message with the real response
+                updateLastBotMessage(botResponse.response); // We now get an object
+
+            } catch (error) {
+                console.error("Error getting response from backend:", error);
+                updateLastBotMessage("I'm sorry, I'm having trouble connecting at the moment. Please try again later.");
+            }
+        }
+        
+        async function getBotResponseFromBackend(text) {
+             const response = await fetch(API_ENDPOINT, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                // Send only the query, as the backend is stateless
+                body: JSON.stringify({ query: text }),
+             });
+
+             if (!response.ok) {
+                 throw new Error(`API call failed with status: ${response.status}`);
+             }
+
+             const data = await response.json();
+             // The backend now sends an object: { intent: "qa", response: "..." }
+             return data;
+        }
+
+        function addMessageToUI(text, sender, isThinking = false) {
+            const messageElement = document.createElement('div');
+            const uniqueId = `msg-${Date.now()}`;
+            
+            if (sender === 'user') {
+                messageElement.className = 'flex items-start gap-3 justify-end';
+                messageElement.innerHTML = `
+                    <div class="bg-blue-500 text-white p-4 rounded-lg rounded-br-none max-w-lg shadow">
+                        <p class="text-sm">${text}</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center font-bold text-gray-600 shrink-0">You</div>
+                `;
+            } else {
+                 messageElement.className = 'flex items-start gap-3';
+                 messageElement.innerHTML = `
+                    <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold text-lg shrink-0">H</div>
+                    <div class="bg-gray-200 dark:bg-gray-700 p-4 rounded-lg rounded-tl-none max-w-lg shadow relative group">
+                        <p class="text-sm" id="${uniqueId}">${isThinking ? '<span class="animate-pulse">Thinking...</span>' : text}</p>
+                        <!-- Add speaker button here, but wait for final content -->
+                        <div class="absolute -right-8 top-1/2 -translate-y-1/2" style="display: none;">
+                            <svg onclick="speakText('${uniqueId}')" class="speaker-btn h-5 w-5 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.5a1.5 1.5 0 0 0-1.5 1.5v6a1.5 1.5 0 0 0 1.5 1.5h1.94l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06ZM18.584 14.828a1.5 1.5 0 0 0 0-2.121l-1.414-1.414a1.5 1.5 0 1 0-2.121 2.121l1.414 1.414a1.5 1.5 0 0 0 2.121 0ZM18.584 9.172a1.5 1.5 0 1 0-2.121-2.121L15.05 8.465a1.5 1.5 0 1 0 2.121 2.121l1.413-1.414Z"/>
+                            </svg>
+                        </div>
+                    </div>
+                 `;
+            }
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function updateLastBotMessage(text) {
+            const allBotMessages = chatMessages.querySelectorAll('.flex.items-start.gap-3:not(.justify-end)');
+            if (allBotMessages.length > 0) {
+                const lastMessageContainer = allBotMessages[allBotMessages.length - 1];
+                const textElement = lastMessageContainer.querySelector('p');
+                const speakerButtonContainer = lastMessageContainer.querySelector('.absolute');
+                
+                if (textElement) {
+                    textElement.innerHTML = text; // Update the text
+                }
+                if (speakerButtonContainer) {
+                    speakerButtonContainer.style.display = 'block'; // Show the speaker button
+                }
+            }
+        }
+
+        function autoResizeTextarea() {
+            chatInput.style.height = 'auto';
+            chatInput.style.height = (chatInput.scrollHeight) + 'px';
+            if (chatInput.scrollHeight > 200) {
+                 chatInput.style.overflowY = 'auto';
+            } else {
+                 chatInput.style.overflowY = 'hidden';
+            }
+        }
+        
+        // Initial resize
+        autoResizeTextarea();
+    </script>
+</body>
+</html>
+
