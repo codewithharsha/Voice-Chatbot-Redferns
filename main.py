@@ -159,6 +159,5 @@ if __name__ == "__main__":
     # init_db() call removed
         
     print("Starting Flask server...")
-    # Running on 0.0.0.0 makes it accessible on your network, ready for EC2
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0")
 
