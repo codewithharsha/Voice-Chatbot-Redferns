@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # --- LLM and API Key Setup ---
-groq_api_key = "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"
+groq_api_key = os.getenv("GROQ_API_KEY")
 
 if not groq_api_key:
     raise ValueError("GROQ_API_KEY not found. Please set it in your .env file or as an environment variable.")
